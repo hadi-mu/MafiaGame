@@ -1,0 +1,105 @@
+function mafiawin () {
+    if (PlayerCount == 2) {
+        radio.sendString("Mafia Wins!")
+        basic.showString("MafiaWins!!!")
+    }
+}
+function civwin () {
+    radio.sendString("Civillian Win!")
+    basic.showString("Civillians Win!")
+}
+function assign () {
+    if (boolSetUp == "1") {
+        boolSetUp = "0"
+    }
+    mafiagroup = Math.randomRange(1, PlayerCount)
+    radio.setGroup(mafiagroup)
+    radio.sendString("M")
+    for (let index2 = 0; index2 <= PlayerCount; index2++) {
+        if (index2 != mafiagroup) {
+            radio.setGroup(index2)
+            radio.sendString("C")
+        }
+    }
+}
+radio.onReceivedValue(function (name, value) {
+    interactsrecieved = 0
+    if (name == "intco") {
+        basic.showString("" + PlayerCount)
+        allintco.push(value)
+        if (allintco.length >= PlayerCount - 0) {
+            highest_and_lowest()
+            radio.sendValue("highest", PlayerCount - 2)
+            radio.sendValue("lowest", low)
+            control.waitMicros(5000000)
+        }
+    }
+    if (name == "dead") {
+        if (value == 1) {
+            PlayerCount += -1
+        } else {
+            if (value == 2) {
+                civwin()
+            }
+        }
+    }
+    if (name == "win") {
+        if (value == 1) {
+            civwin()
+        }
+    }
+})
+radio.onReceivedNumber(function (receivedNumber) {
+    if (boolSetUp == "1") {
+        PlayerCount += 1
+        radio.sendNumber(PlayerCount)
+        basic.showNumber(PlayerCount)
+    }
+})
+function highest_and_lowest () {
+    high = 0
+    low = 1000000
+    for (let index = 0; index <= allintco.length - 1; index++) {
+        if (low > allintco[index]) {
+            low = allintco[index]
+        }
+    }
+}
+function StartGame () {
+    radio.setGroup(0)
+    timeleft = 20
+    radio.sendValue("rs", 1)
+    for (let index = 0; index < 3; index++) {
+        music.playTone(988, music.beat(BeatFraction.Whole))
+    }
+    for (let index = 0; index < 20; index++) {
+        control.waitMicros(1000000)
+        timeleft += -1
+        basic.showNumber(timeleft)
+    }
+    for (let index = 0; index < 3; index++) {
+        music.playTone(988, music.beat(BeatFraction.Whole))
+    }
+    radio.sendString("re")
+    mafiawin()
+}
+input.onButtonPressed(Button.AB, function () {
+    allintco = []
+    if (boolSetUp == "1") {
+        assign()
+    }
+    control.waitMicros(3000000)
+    radio.setGroup(0)
+    StartGame()
+})
+let timeleft = 0
+let high = 0
+let low = 0
+let allintco: number[] = []
+let interactsrecieved = 0
+let mafiagroup = 0
+let boolSetUp = ""
+let PlayerCount = 0
+radio.setGroup(100)
+PlayerCount = 0
+boolSetUp = "1"

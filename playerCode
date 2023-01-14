@@ -1,0 +1,196 @@
+function PrepfornextRound () {
+    basic.showLeds(`
+        . . . . .
+        . . . . .
+        . . . . .
+        . . . . .
+        . . . . .
+        `)
+    boolRoundActive = 1
+    if (character == 1) {
+        AmountOfKills = 1
+    }
+    PlayersInteractedWith = []
+    boolInteractedWithMafia = 0
+}
+input.onButtonPressed(Button.AB, function () {
+    if (boolRoundActive == 1) {
+        radio.sendValue("intreq", PlayerID)
+    } else {
+    	
+    }
+})
+radio.onReceivedNumber(function (receivedNumber) {
+    if (started == false) {
+        basic.showNumber(receivedNumber)
+        radio.setGroup(receivedNumber)
+        started = true
+        PlayerID = receivedNumber
+    } else {
+    	
+    }
+})
+input.onButtonPressed(Button.A, function () {
+    if (character == 1 && AmountOfKills > 0) {
+        radio.sendValue("die", 1)
+    } else {
+    	
+    }
+})
+function DIE () {
+    control.waitMicros(Math.randomRange(0, 1500000))
+    if (character == 0) {
+        radio.sendValue("dead", 1)
+    } else {
+        radio.sendValue("dead", 2)
+    }
+    basic.showLeds(`
+        # . . . #
+        . # . # .
+        . . # . .
+        . # . # .
+        # . . . #
+        `)
+    radio.setGroup(173)
+}
+radio.onReceivedValue(function (name, value) {
+    if (name == "rs" && value == 1) {
+        PrepfornextRound()
+    }
+    if (name == "lowest" && value >= PlayersInteractedWith.length) {
+        DIE()
+    }
+    if (name == "highest" && value <= PlayersInteractedWith.length) {
+        if (boolInteractedWithMafia == 0) {
+            if (character == 0) {
+                WIN()
+            }
+        }
+    }
+    if (name == "intid") {
+        if (InteractionRange < radio.receivedPacket(RadioPacketProperty.SignalStrength)) {
+            control.waitMicros(200000)
+            if (value != 6969) {
+                if (PlayersInteractedWith.indexOf(value) == -1) {
+                    PlayersInteractedWith.push(value)
+                    basic.showIcon(IconNames.Yes)
+                    basic.pause(1000)
+                    basic.showLeds(`
+                        . . . . .
+                        . . . . .
+                        . . . . .
+                        . . . . .
+                        . . . . .
+                        `)
+                } else {
+                	
+                }
+            } else {
+                boolInteractedWithMafia = 1
+                basic.showIcon(IconNames.Yes)
+                basic.pause(1000)
+                basic.showLeds(`
+                    . . . . .
+                    . . . . .
+                    . . . . .
+                    . . . . .
+                    . . . . .
+                    `)
+            }
+        }
+    }
+    if (name == "intreq") {
+        if (InteractionRange < radio.receivedPacket(RadioPacketProperty.SignalStrength)) {
+            basic.pause(200)
+            if (character == 0) {
+                radio.sendValue("intid", PlayerID)
+            } else {
+                radio.sendValue("intid", 6969)
+            }
+        }
+    }
+    if (name == "imdead" && character == 1) {
+        AmountOfKills += -1
+        led.setBrightness(100)
+        basic.showIcon(IconNames.Skull)
+        basic.pause(100)
+        basic.showLeds(`
+            . . . . .
+            . . . . .
+            . . . . .
+            . . . . .
+            . . . . .
+            `)
+        led.setBrightness(255)
+    }
+    if (name == "die" && InteractionRange < radio.receivedPacket(RadioPacketProperty.SignalStrength)) {
+        if (character == 0) {
+            booldieatroundend = 1
+            radio.sendValue("imdead", 1)
+        }
+    }
+})
+radio.onReceivedString(function (receivedString) {
+    if (receivedString == "C") {
+        basic.showString(receivedString)
+        character = 0
+        radio.setGroup(0)
+    }
+    if (receivedString == "M") {
+        basic.showString(receivedString)
+        character = 1
+        radio.setGroup(0)
+    }
+    if (receivedString == "countdown") {
+        countDown(60)
+    }
+    if (receivedString == "re") {
+        boolRoundActive = 0
+        basic.showIcon(IconNames.Square)
+        if (booldieatroundend == 1) {
+            DIE()
+        } else {
+            control.waitMicros(Math.randomRange(0, 1500000))
+            radio.sendValue("intco", PlayersInteractedWith.length)
+        }
+    }
+    if (receivedString == "Mafia Wins!") {
+        if (character == 0) {
+            basic.showIcon(IconNames.Sad)
+        } else {
+            basic.showIcon(IconNames.Happy)
+        }
+    }
+    if (receivedString == "Civillian win!") {
+        if (character == 0) {
+            basic.showString(receivedString)
+        } else {
+            basic.showIcon(IconNames.Sad)
+        }
+    }
+})
+function countDown (num: number) {
+    timeleft = num
+    for (let index = 0; index < num; index++) {
+        timeleft += -1
+        basic.showNumber(timeleft)
+    }
+}
+function WIN () {
+    radio.sendValue("win", 1)
+    basic.showIcon(IconNames.Happy)
+}
+let timeleft = 0
+let booldieatroundend = 0
+let started = false
+let PlayerID = 0
+let boolInteractedWithMafia = 0
+let PlayersInteractedWith: number[] = []
+let character = 0
+let boolRoundActive = 0
+let AmountOfKills = 0
+let InteractionRange = 0
+radio.setGroup(100)
+radio.sendNumber(0)
+InteractionRange = -55
+AmountOfKills = 1
